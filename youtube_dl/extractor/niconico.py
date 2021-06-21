@@ -257,14 +257,14 @@ class NiconicoIE(InfoExtractor):
                 }
             }).encode())
 
-        resolution = video_quality.get('resolution', {})
+        resolution = video_quality['metadata'].get('resolution', {})
 
         return {
             'url': session_response['data']['session']['content_uri'],
             'format_id': format_id,
             'ext': 'mp4',  # Session API are used in HTML5, which always serves mp4
-            'abr': float_or_none(audio_quality.get('bitrate'), 1000),
-            'vbr': float_or_none(video_quality.get('bitrate'), 1000),
+            'abr': float_or_none(audio_quality['metadata'].get('bitrate'), 1000),
+            'vbr': float_or_none(video_quality['metadata'].get('bitrate'), 1000),
             'height': resolution.get('height'),
             'width': resolution.get('width'),
         }
