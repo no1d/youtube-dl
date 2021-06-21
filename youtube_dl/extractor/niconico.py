@@ -195,7 +195,7 @@ class NiconicoIE(InfoExtractor):
         def yesno(boolean):
             return 'yes' if boolean else 'no'
 
-        session_api_data = api_data['video']['dmcInfo']['session_api']
+        session_api_data = api_data['media']['delivery']['movie']['session']
         session_api_endpoint = session_api_data['urls'][0]
 
         format_id = '-'.join(map(lambda s: remove_start(s['id'], 'archive_'), [video_quality, audio_quality]))
@@ -208,15 +208,15 @@ class NiconicoIE(InfoExtractor):
             data=json.dumps({
                 'session': {
                     'client_info': {
-                        'player_id': session_api_data['player_id'],
+                        'player_id': session_api_data['playerId'],
                     },
                     'content_auth': {
-                        'auth_type': session_api_data['auth_types'][session_api_data['protocols'][0]],
-                        'content_key_timeout': session_api_data['content_key_timeout'],
+                        'auth_type': session_api_data['authTypes'][session_api_data['protocols'][0]],
+                        'content_key_timeout': session_api_data['contentKeyTimeout'],
                         'service_id': 'nicovideo',
-                        'service_user_id': session_api_data['service_user_id']
+                        'service_user_id': session_api_data['serviceUserId']
                     },
-                    'content_id': session_api_data['content_id'],
+                    'content_id': session_api_data['contentId'],
                     'content_src_id_sets': [{
                         'content_src_ids': [{
                             'src_id_to_mux': {
@@ -229,7 +229,7 @@ class NiconicoIE(InfoExtractor):
                     'content_uri': '',
                     'keep_method': {
                         'heartbeat': {
-                            'lifetime': session_api_data['heartbeat_lifetime']
+                            'lifetime': session_api_data['heartbeatLifetime']
                         }
                     },
                     'priority': session_api_data['priority'],
@@ -239,14 +239,14 @@ class NiconicoIE(InfoExtractor):
                             'http_parameters': {
                                 'parameters': {
                                     'http_output_download_parameters': {
-                                        'use_ssl': yesno(session_api_endpoint['is_ssl']),
-                                        'use_well_known_port': yesno(session_api_endpoint['is_well_known_port']),
+                                        'use_ssl': yesno(session_api_endpoint['isSsl']),
+                                        'use_well_known_port': yesno(session_api_endpoint['isWellKnownPort']),
                                     }
                                 }
                             }
                         }
                     },
-                    'recipe_id': session_api_data['recipe_id'],
+                    'recipe_id': session_api_data['recipeId'],
                     'session_operation_auth': {
                         'session_operation_auth_by_signature': {
                             'signature': session_api_data['signature'],
@@ -288,7 +288,7 @@ class NiconicoIE(InfoExtractor):
             return 'economy' if video_real_url.endswith('low') else 'normal'
 
         try:
-            video_real_url = api_data['video']['smileInfo']['url']
+            video_real_url = None
         except KeyError:  # Flash videos
             # Get flv info
             flv_info_webpage = self._download_webpage(
@@ -335,12 +335,11 @@ class NiconicoIE(InfoExtractor):
         else:
             formats = []
 
-            dmc_info = api_data['video'].get('dmcInfo')
+            dmc_info = api_data['media']['delivery']['movie']
             if dmc_info:  # "New" HTML5 videos
-                quality_info = dmc_info['quality']
-                for audio_quality in quality_info['audios']:
-                    for video_quality in quality_info['videos']:
-                        if not audio_quality['available'] or not video_quality['available']:
+                for audio_quality in dmc_info['audios']:
+                    for video_quality in dmc_info['videos']:
+                        if not audio_quality['isAvailable'] or not video_quality['isAvailable']:
                             continue
                         formats.append(self._extract_format_for_quality(
                             api_data, video_id, audio_quality, video_quality))
